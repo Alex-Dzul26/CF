@@ -1,0 +1,156 @@
+#include<bits/stdc++.h>
+#define  S second
+#define  F first
+#define vll vector<ll>
+#define mll vector<vll>
+#define vi vector<int>
+#define mi vector<vi>
+#define all(a) (a).begin(),(a).end()
+#define rep(i,x,y) for(ll i=x; i<y;i++)
+#define rrep(i,x,y) for(ll i=x; i>=y;i--)
+#define endl "\n"
+using namespace std;
+typedef long long ll;
+typedef long double ld;
+ll mod=1e9+7;
+
+class DSU {
+  public:
+    vector<int> parents;
+    vector<int> sizes;
+    vector<int> edges;
+    int tamanioComponenteMaximo;
+
+  public:
+    DSU(int size) : parents(size), sizes(size, 1), edges(size, 0) {
+        for (int i = 0; i < size; i++) { parents[i] = i; }
+        tamanioComponenteMaximo = 1;
+    }
+
+    int find(int x) {
+        return parents[x] == x ? x : (parents[x] = find(parents[x]));
+    }
+
+    bool unite(int x, int y) {
+        int x_root = find(x);
+        int y_root = find(y);
+        if (x_root == y_root) {
+            edges[x_root]++; 
+            return false; }
+
+        if (sizes[x_root] < sizes[y_root]) { swap(x_root, y_root); }
+        
+        parents[y_root] = x_root;
+        sizes[x_root] += sizes[y_root];
+        edges[x_root] += edges[y_root] + 1;
+        tamanioComponenteMaximo = max(tamanioComponenteMaximo, sizes[x_root]);
+        return true;
+    }
+
+    bool connected(int x, int y) { return find(x) == find(y); }
+};
+
+void dfs(pair<ll, ll> act, ll dir, DSU& dsu, map<ll, pair<ll, ll>>& estado, vector<pair<ll, ll>>& v,
+    map<pair<ll, ll>, ll>& pos, map<ll, vector<pair<ll, ll>>>& diagpos, map<ll, vector<pair<ll, ll>>>& diagneg, ll k){
+
+    if (dir == 0){
+        ll aux = act.F-act.S;
+        aux %= k;
+        aux += k;
+                aux %= k;
+
+        auto it = upper_bound(all(diagpos[aux]), act);
+        if (it == diagpos[aux].end()){
+            estado[dsu.find(2*pos[act])] = {1, 0};
+        }
+        else{
+            pair<ll, ll> nxt = *it;
+            nxt.S %= k;
+            if (estado[dsu.find(2*pos[nxt]+1)].F == 0){
+                if (dsu.unite(2*pos[act], 2*pos[nxt]+1)){
+                    // cout << 2*pos[act] << ' ' << 2*pos[nxt]+1 << endl;
+                    dfs(nxt, 1, dsu, estado, v, pos, diagpos, diagneg, k);
+                }
+                else{
+                    estado[dsu.find(2*pos[act])] = {1, 1};
+                }
+            }
+            else{
+                if (estado[dsu.find(2*pos[nxt]+1)].S == 0){
+                    dsu.unite(2*pos[act], 2*pos[nxt]+1);
+                    estado[dsu.find(2*pos[act])] = {1, 0};
+                }
+                else{
+                    dsu.unite(2*pos[act], 2*pos[nxt]+1);
+                    estado[dsu.find(2*pos[act])] = {1, 1};
+                }
+            }
+
+            
+        }
+
+    }
+    else{
+        ll aux = act.F+act.S;
+        aux %= k;
+
+        auto it = lower_bound(all(diagneg[aux]), act);
+        if (it == diagneg[aux].begin()){
+            estado[dsu.find(2*pos[act]+1)] = {1, 0};
+        }
+        else{
+            it--;
+            pair<ll, ll> nxt = *it;
+            nxt.S %= k;
+            if (estado[dsu.find(2*pos[nxt])].F == 0){
+            
+                if (dsu.unite(2*pos[act]+1, 2*pos[nxt])){
+                    dfs(nxt, 0, dsu, estado, v, pos, diagpos, diagneg, k);
+                }
+                else{
+
+                    estado[dsu.find(2*pos[act]+1)] = {1, 1};    
+                }
+            }
+            else{
+                if (estado[dsu.find(2*pos[nxt])].S == 0){
+                    dsu.unite(2*pos[act]+1, 2*pos[nxt]);
+                    estado[dsu.find(2*pos[act]+1)] = {1, 0};
+                }
+                else{
+                    dsu.unite(2*pos[act]+1, 2*pos[nxt]);
+                    estado[dsu.find(2*pos[act]+1)] = {1, 1};
+                }
+            }
+
+            
+        }
+    }
+}
+
+void solve() {  
+    ll n; cin >> n;
+    string s; cin >> s;
+
+    char aux = s[n-1];
+
+    string ans = "";
+
+    rep(i, 0, n) ans+=aux;
+
+    cout << ans << endl;
+}
+
+
+int main()
+{
+    ios_base::sync_with_stdio(0);cin.tie(0);cout.tie(0);
+    
+    ll t = 1;
+    cin >> t;
+
+    while(t--){
+        solve();
+    }
+  
+}
